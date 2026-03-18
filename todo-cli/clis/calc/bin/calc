@@ -1,2 +1,39 @@
 #!/usr/bin/env node
-require("../src/calc.js");
+const args = process.argv.slice(2);
+if (args.length !== 2 && args.length !== 3) {
+  console.log('calc 12 + 5 | calc 3.14 sin | calc 16 sqrt | calc 5 fact');
+  process.exit(1);
+}
+
+function factorial(n) {
+  if (n <= 1) return 1;
+  return n * factorial(n - 1);
+}
+
+const [a, op, b] = args.length === 3 ? args : [...args, null];
+const A = parseFloat(a);
+
+let result;
+if (args.length === 2) {
+  switch(op) {
+    case 'sin': result = Math.sin(A); break;
+    case 'cos': result = Math.cos(A); break;
+    case 'tan': result = Math.tan(A); break;
+    case 'log': result = Math.log(A); break;
+    case 'exp': result = Math.exp(A); break;
+    case 'sqrt': result = Math.sqrt(A); break;
+    case 'fact': result = factorial(Math.round(A)); break;
+    default: console.log('Science: sin cos tan log exp sqrt fact'); process.exit(1);
+  }
+} else {
+  const B = parseFloat(b);
+  switch(op) {
+    case '+': result = A + B; break;
+    case '-': result = A - B; break;
+    case '*': result = A * B; break;
+    case '/': result = A / B; break;
+    case '%': result = A % B; break;
+    default: console.log('Basic: + - * / %'); process.exit(1);
+  }
+}
+console.log('=', result);
