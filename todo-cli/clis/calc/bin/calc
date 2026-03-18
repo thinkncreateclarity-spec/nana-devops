@@ -1,39 +1,36 @@
 #!/usr/bin/env node
 const args = process.argv.slice(2);
-if (args.length !== 2 && args.length !== 3) {
-  console.log('calc 12 + 5 | calc 3.14 sin | calc 16 sqrt | calc 5 fact');
+if (![2,3,4].includes(args.length)) {
+  console.log('calc "1 2;3 4" det | 12+5 | sin 3.14 | 5 fact | 5 2 10 arith');
   process.exit(1);
 }
 
-function factorial(n) {
-  if (n <= 1) return 1;
-  return n * factorial(n - 1);
-}
+function factorial(n) { if (n<=1) return 1; return n*factorial(n-1); }
 
-const [a, op, b] = args.length === 3 ? args : [...args, null];
-const A = parseFloat(a);
-
-let result;
+let result, A = parseFloat(args[0]);
 if (args.length === 2) {
-  switch(op) {
-    case 'sin': result = Math.sin(A); break;
-    case 'cos': result = Math.cos(A); break;
-    case 'tan': result = Math.tan(A); break;
-    case 'log': result = Math.log(A); break;
-    case 'exp': result = Math.exp(A); break;
-    case 'sqrt': result = Math.sqrt(A); break;
-    case 'fact': result = factorial(Math.round(A)); break;
-    default: console.log('Science: sin cos tan log exp sqrt fact'); process.exit(1);
+  const op = args[1];
+  if (['sin','cos','tan','log','exp','sqrt','fact','harm'].includes(op)) {
+    switch(op) {
+      case 'sin': result=Math.sin(A); break; case 'cos': result=Math.cos(A); break;
+      case 'tan': result=Math.tan(A); break; case 'log': result=Math.log(A); break;
+      case 'exp': result=Math.exp(A); break; case 'sqrt': result=Math.sqrt(A); break;
+      case 'fact': result=factorial(Math.round(A)); break;
+      case 'harm': result=0; for(let i=1;i<=Math.round(A);i++) result+=1/i; break;
+    }
+  } else if (args[1]==='det') {
+    const m = args[0].split(';').map(r=>r.split(' ').map(Number));
+    result = m[0][0]*m[1][1] - m[0][1]*m[1][0];
   }
-} else {
-  const B = parseFloat(b);
-  switch(op) {
-    case '+': result = A + B; break;
-    case '-': result = A - B; break;
-    case '*': result = A * B; break;
-    case '/': result = A / B; break;
-    case '%': result = A % B; break;
-    default: console.log('Basic: + - * / %'); process.exit(1);
+} else if (args.length === 3) {
+  const B = parseFloat(args[2]);
+  switch(args[1]) {
+    case '+': result=A+B; break; case '-': result=A-B; break; case '*': result=A*B; break;
+    case '/': result=A/B; break; case '%': result=A%B; break;
   }
+} else if (args.length === 4 && ['arith','geo'].includes(args[3])) {
+  const a=parseFloat(args[0]), r=parseFloat(args[1]), n=parseFloat(args[2]);
+  if (args[3]==='arith') result=n/2*(2*a+(n-1)*r);
+  else result=a*(Math.pow(r,n)-1)/(r-1);
 }
-console.log('=', result);
+console.log('=', result || 'Invalid');
