@@ -1,0 +1,30 @@
+#!/usr/bin/env node
+const { program } = require('commander');
+
+program
+  .command('login')
+  .description('1 Rupee Pro Trial')
+  .action(() => {
+    console.log('Email prompt (demo)');
+    console.log('UPI QR: upi://pay?pa=ajay@paytm&am=1');
+    console.log('Scan with PhonePe/GPay - 7 Day Pro!');
+  });
+
+program
+  .command('add')
+  .description('Add todo')
+  .argument('<title>')
+  .action((title) => {
+    console.log('Added: ' + title);
+    console.log('Synced to cloud (Pro)');
+  });
+
+program
+  .command('list')
+  .description('List todos')
+  .action(() => {
+    console.log('1. Buy milk');
+    console.log('2. Deploy CLI empire');
+  });
+
+program.parse();
