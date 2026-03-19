@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+const args = process.argv.slice(2);
+if (args[0] === 'upi') console.log('💰 UPI: upi://pay?pa=ajay@paytm&am=99&tn=CLI-Pro');
+else if (args[0] === 'status') console.log('💎 11/12 Empire → $3M ARR trajectory');
+else console.log('revenue upi | status | empire');

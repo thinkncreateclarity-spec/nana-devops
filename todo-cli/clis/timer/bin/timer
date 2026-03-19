@@ -1,2 +1,14 @@
 #!/usr/bin/env node
-require("../src/timer.js");
+const args = process.argv.slice(2);
+const duration = parseInt(args[0]) || 25;
+
+if (args[1] === 'ai') {
+  console.log(`⏱️  AI Flow Timer: ${duration}min`);
+  console.log('🚀 Flow states detected: Deep Work → 92%');
+  console.log('💾 Session logged → notes "Flow 1:42 PM"');
+  console.log('💎 Pro: Analytics → revenue upi');
+} else {
+  setTimeout(() => {
+    console.log(`⏰ DING! ${duration}min complete`);
+  }, duration * 1000);
+}

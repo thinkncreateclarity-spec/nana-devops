@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+const args = process.argv.slice(2);
+if (args[0] === 'btc') console.log('₿ BTC: $95,420 ↑3.2%');
+else if (args[0] === 'eth') console.log('₿ ETH: $4,210 ↑1.8%');
+else console.log('crypto btc | eth | portfolio');

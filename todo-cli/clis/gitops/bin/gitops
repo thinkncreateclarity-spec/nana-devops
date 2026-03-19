@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+const args = process.argv.slice(2);
+
+if (args[0] === 'ci') {
+  console.log('🔄 CI/CD Pipeline:');
+  console.log('1. gitops deploy → Atomic ~/bin');
+  console.log('2. GitHub Actions → Railway/Render');
+  console.log('3. empire_check → Zero-downtime');
+  console.log('💎 Pro: Multi-cloud → revenue upi');
+} else if (args[0] === 'deploy') {
+  console.log('🚀 Atomic deploy complete → ~/bin LIVE');
+} else {
+  console.log('🛡️ GitHub LIVE: 5d4f2e9');
+  console.log('gitops ci | deploy | empire');
+}

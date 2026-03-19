@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+args=process.argv.slice(2)
+if(args.length!==2){console.log("plot 3 sin");process.exit(1)}
+[p,f]=args
+console.log(f.toUpperCase()+"("+p+"):")
+for(x=0;x<40;x++){t=x/40*parseFloat(p)*Math.PI*2
+y=f==="sin"?Math.sin(t):Math.cos(t)
+process.stdout.write(" -*+*"[Math.floor((y+1)*2)])}console.log("\
+")

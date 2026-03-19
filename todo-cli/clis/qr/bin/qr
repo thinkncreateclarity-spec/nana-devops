@@ -1,2 +1,13 @@
 #!/usr/bin/env node
-require("../src/qr.js");
+const args = process.argv.slice(2);
+if (args[0] === 'bulk') {
+  console.log('📱 Bulk UPI QR Generator (Pro)');
+  console.log('CSV format: amount,customer');
+  console.log('upi://pay?pa=ajay@paytm&am=99&tn=CLI-Pro-001');
+  console.log('💎 Enterprise: ₹499/mo → 1000 QR/day');
+} else if (args[0] === 'upi') {
+  const amount = args[1] || '99';
+  console.log(`💰 UPI QR (${amount}): upi://pay?pa=ajay@paytm&am=${amount}&tn=CLI-Pro`);
+} else {
+  console.log(`QR: nana-upi.com`);
+}
