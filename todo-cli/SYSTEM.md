@@ -158,6 +158,48 @@ This section defines the **baseline requirements** of the system.
 - All changes to CLI tools, helpers, and documentation shall be recorded in Git before being considered part of the system.
 - Any Termux‑local‑only scripts, aliases, or environment‑specific tweaks that are not in the repo shall be treated as non‑standard and invalid in the baseline.
 
+### 3.6 REQ‑006: Real‑time session tracking (`timer`)
+
+- The system shall record start and stop events for each `timer` session in `~/nana-devops/todo-cli/clis/timer/data/sessions.txt`.
+- Each start event shall contain:
+  - Session label (i.e., the `<task>` given to `timer start`).
+  - Start timestamp (in ISO‑8601 or `date +%s`).
+- Each stop event shall contain:
+  - Session label.
+  - Stop timestamp.
+- The system shall compute elapsed time (in seconds) for completed sessions.
+- The system shall provide a `timer status` command that prints:
+  - Current active session (if any), with elapsed time so far.
+  - List of completed sessions from `sessions.txt`, each with:
+    - Session label.
+    - Start time.
+    - End time.
+    - Elapsed seconds.
+- The implementation of `timer` shall be written as a portable POSIX shell script, with no external dependencies.
+
+### 3.7 REQ‑007: Session‑based billing (`revenue`)
+
+- The system shall provide a `revenue session <session_id>` command that:
+  - Reads the corresponding timer session from `~/nana-devops/todo-cli/clis/timer/data/sessions.txt`.
+  - Computes elapsed time (in seconds) for that session.
+  - Maps elapsed time to a monetary value (e.g., 60 minutes → ₹99).
+  - Prints a UPI deep‑link URI with that amount and a session‑based label, e.g.:
+    `upi://pay?pa=ajay@paytm&am=99&tn=Focus-session`
+- The system shall keep `revenue` core behavior (`revenue upi`, `revenue status`) unchanged and treat `revenue session <session_id>` as an extension.
+- The implementation of `revenue session` shall be written as a portable POSIX shell script, with no external dependencies.
+
+### 3.8 REQ‑008: Empirical billing trigger (`mpc‑bill`)
+
+- The system shall provide an `mpc‑bill` helper that:
+  - Monitors `~/nana-devops/todo-cli/clis/timer/data/sessions.txt`.
+  - Detects when a completed session exceeds a configurable threshold (e.g., 60 minutes).
+  - For each such session, invokes `revenue session <session_id>` with appropriate parameters.
+- The system shall allow the threshold (e.g., `60 minutes`) to be configured via an environment variable or script‑local constant.
+- `mpc‑bill` shall be optional and non‑core; the baseline system is valid without running it.
+- The implementation of `mpc‑bill` shall be written as a portable POSIX shell script, with no external dependencies.
+
+---
+
 ## 4. Validation (VAL)
 
 ### 4.1 VAL‑001: Git‑clean state validation
@@ -174,3 +216,140 @@ This section defines the **baseline requirements** of the system.
   - `git status` shall report `nothing to commit, working tree clean`.
   - `~/nana-devops/todo-cli/clis/todo/bin/todo` shall match the version in the repo.
   - Any Termux‑local‑only scripts or untracked helpers that are not in the repo shall be removed and not present in the working tree.
+
+### 4.2 VAL‑002: Core CLI workflow validation
+
+- Preconditions: Git‑clean state.
+- Steps:
+  ```bash
+  cd ~/nana-devops/todo-cli
+  todo add "Test task"
+  todo list
+  timer start "Test task"
+  sleep 5
+  timer stop
+  revenue upi
+  ``` 
+  - Preconditions: Git‑clean state.
+- Expected outputs:
+  - `Added: Test task`
+  - numbered `todo list`
+  - `Timer started: Test task` → `Timer finished: Test task`
+  - `upi://pay?pa=ajay@paytm&am=99&tn=CLI-Pro`
+
+  ### 4.3 VAL‑003: Error‑case validation
+
+- Preconditions: Git‑clean state.
+- Steps:
+  ```bash
+  cd ~/nana-devops/todo-cli
+  todo
+  timer start
+  revenue
+  ``` 
+  - Expected outputs:
+  - Each command shall print usage/help or fail with non‑zero exit; no silent success.
+- Postconditions:
+  - Error‑handling is explicit and consistent across core tools.
+
+### 4.4 VAL‑004: Session‑tracking validation
+
+- Preconditions: Git‑clean state, and `~/nana-devops/todo-cli/clis/timer/data/sessions.txt` exists (can be empty).
+- Steps:
+  ```bash
+  cd ~/nana-devops/todo-cli
+  timer start "Session A"
+  sleep 建构
+  timer stop
+  timer start "Session B"
+  sleep 5
+  timer stop
+  timer status
+  ``` 
+  - Expected outputs:
+  - `Timer started: Session A` → `Timer finished: Session A`
+  - `Timer started: Session B` → `Timer finished: Session B`
+  - `timer status` prints:
+    - No active session.
+    - Two completed sessions:
+      - `Session A` with ~10 seconds elapsed.
+      - `Session B` with ~5 seconds elapsed.
+- Postconditions:
+  - `sessions.txt` contains two start‑stop pairs for `Session A` and `Session B`.
+  - Elapsed times match (within small tolerance) the `sleep` durations.
+
+### 4.5 VAL‑005: Session‑billing validation
+
+- Preconditions: Git‑clean state, `timer` sessions recorded and `revenue` command available.
+- Steps:
+  ```bash
+  cd ~/nana-devops/todo-cli
+  timer start "Billing session"
+  sleep 300
+  timer stop
+  revenue session "Billing session"
+  ``` 
+  - Expected outputs:
+  - `Timer started: Billing session` → `Timer finished: Billing session`.
+  - `revenue session "Billing session"` prints a UPI deep‑link URI, e.g.:
+    `upi://pay?pa=ajay@paytm&am=99&tn=Billing-session`.
+- Postconditions:
+  - The amount in the UPI link corresponds to a reasonable mapping from 300 seconds to a fixed price band (e.g., tiered or flat‑rate).
+
+  ### 4.6 VAL‑006: Billing‑trigger validation
+
+- Preconditions: Git‑clean state, `timer` and `revenue` working, `mpc‑bill` script available.
+- Steps:
+  ```bash
+  cd ~/nana-devops/todo-cli
+  timer start "Long session"
+  sleep 3600
+  timer stop
+  mpc‑bill
+  ``` 
+  - Expected outputs:
+  - `Timer started: Long session` → `Timer finished: Long session`.
+  - `mpc‑bill` invokes `revenue session "Long session"` and prints a corresponding UPI deep‑link URI.
+- Postconditions:
+  - `sessions.txt` shows one completed `Long session` of ~3600 seconds.
+  - The UPI deep‑link reflects an amount consistent with the configured billing threshold (e.g., 60 minutes → ₹99).
+
+### 4.7 VAL‑007: Monetization‑loop and dashboard validation
+
+- Preconditions: Git‑clean state, `timer` sessions recorded, `revenue` working, and `revenue status` reporting.
+- Steps:
+  ```bash
+  cd ~/nana-devops/todo-cli
+  timer start "Monetized session"
+  sleep 300
+  timer stop
+  revenue session "Monetized session"
+  revenue status
+  ``` 
+  - Expected outputs:
+  - `Timer started: Monetized session` → `Timer finished: Monetized session`.
+  - `revenue session "Monetized session"` prints a UPI deep‑link URI, e.g.:
+    `upi://pay?pa=ajay@paytm&am=99&tn=Monetized-session`.
+  - `revenue status` prints a status line that includes:
+    - The fact that one session has been billed.
+    - A running “today / total” indicator or similar summary.
+- Postconditions:
+  - The status line reflects the billed session and is consistent with `sessions.txt` entries.
+  - The UPI‑deep‑link corresponds to the configured monetization rate for the session duration.
+
+## 5. Baseline declaration
+
+- This document corresponds to Git commit `TODO: <SHA>` of the `nana-devops` repository.
+- All future changes to the system shall be made relative to this commit.
+- To recover the baseline, run:
+  ```bash
+  cd ~/nana-devops
+  git fetch origin
+  git reset --hard origin/main
+  git clean -d --force
+  ``` 
+  - The baseline includes:
+  - `REQ‑001`–`REQ‑008`
+  - `VAL‑001`–`VAL‑007`
+  - All core CLI tools and SDD‑related files in `todo-cli`.
+
