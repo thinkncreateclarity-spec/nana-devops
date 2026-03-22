@@ -353,3 +353,25 @@ This section defines the **baseline requirements** of the system.
   - `VAL‑001`–`VAL‑007`
   - All core CLI tools and SDD‑related files in `todo-cli`.
 
+  ## 6. CLI‑script inventory
+
+- Core CLI tools (`~/nana-devops/todo-cli/clis/`):
+  - `~/nana-devops/todo-cli/clis/todo/bin/todo`
+  - `~/nana-devops/todo-cli/clis/timer/bin/timer`
+  - `~/nana-devops/todo-cli/clis/revenue/bin/revenue`
+  - `~/nana-devops/todo-cli/clis/notes/bin/notes`
+  - `~/nana-devops/todo-cli/clis/gitops/bin/gitops`
+  - `~/nana-devops/todo-cli/clis/crypto/bin/crypto`
+  - `~/nana-devops/todo-cli/clis/password/bin/password`
+  - `~/nana-devops/todo-cli/clis/calc/bin/calc`
+  - `~/nana-devops/todo-cli/clis/qr/bin/qr`
+  - `~/nana-devops/todo-cli/clis/plot/bin/plot`
+  - `~/nana-devops/todo-cli/clis/weather/bin/weather`
+  - `~/nana-devops/todo-cli/clis/todo-list/bin/todo-list`
+
+- DevOps / MPC‑layer helpers (`~/nana-devops/todo-cli/`):
+  - `~/nana-devops/todo-cli/mpc-bill`
+  - `~/nana-devops/todo-cli/SYSTEM.md` (this document)
+  - `~/nana-devops/todo-cli/README.md` (user‑facing guide)
+
+
