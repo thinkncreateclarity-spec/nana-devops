@@ -1,0 +1,16 @@
+#!/data/data/com.termux/files/usr/bin/bash
+set -euo pipefail
+
+echo "=== Spacecraft SOP: real-test run ==="
+
+set-run-id
+echo "RUN_ID = $RUN_ID"
+
+run-test start real-test
+timer stop
+
+# Call report-test with subsystem
+report-test "$RUN_ID" timer
+
+echo "=== SOP run complete ==="
+echo "Report: ~/nana-devops/reports/test-$RUN_ID.md"
