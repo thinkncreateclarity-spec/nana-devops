@@ -1,14 +1,116 @@
-#!/usr/bin/env node
-const args = process.argv.slice(2);
-const duration = parseInt(args[0]) || 25;
+#!/bin/sh
+set -e
 
-if (args[1] === 'ai') {
-  console.log(`⏱️  AI Flow Timer: ${duration}min`);
-  console.log('🚀 Flow states detected: Deep Work → 92%');
-  console.log('💾 Session logged → notes "Flow 1:42 PM"');
-  console.log('💎 Pro: Analytics → revenue upi');
-} else {
-  setTimeout(() => {
-    console.log(`⏰ DING! ${duration}min complete`);
-  }, duration * 1000);
+D="/data/data/com.termux/files/home/nana-devops/todo-cli/clis/timer/data"
+F="$D/sessions.txt"
+L="$D/.timer.lock"
+
+ensure_dirs() {
+        echo "ENSURE_DIRS: D=$D" >&2
+        echo "ENSURE_DIRS: F=$F" >&2
+        mkdir -p "$D"
+
+        # ONLY create the file if it does not exist
+        if [ ! -f "$F" ]; then
+                echo "ENSURE_DIRS: creating $F" >&2
+                > "$F"
+        fi
+
+        echo "ENSURE_DIRS: ls -La $D" >&2
+        ls -La "$D" >&2
 }
+
+log_event() {
+        echo "LOG_EVENT: will append to: $F" >&2
+        echo "$*" >> "$F"
+        echo "LOG_EVENT: wrote: $*" >&2
+}
+
+current_session() {
+        [ -f "$L" ] && cat "$L" || echo ""
+}
+
+cmd_start() {
+        echo "CMD_START: session=$2" >&2
+        if [ -z "$2" ]; then
+                echo "Usage: $(basename "$0") start <task>" >&2
+                return 1
+        fi
+
+        session="$2"
+        ts=$(date +%s)
+
+        current=$(current_session)
+        [ -n "$current" ] && {
+                echo "Active session: $current (stop first)" >&2
+                return 1
+        }
+
+        echo "$session" > "$L"
+        log_event "start" "$session" "$ts"
+        echo "Timer started: $session"
+}
+
+cmd_stop() {
+        echo "CMD_STOP" >&2
+        current=$(current_session)
+        [ -z "$current" ] && {
+                echo "No active session to stop." >&2
+                return 1
+        }
+
+        ts=$(date +%s)
+        log_event "stop" "$current" "$ts"
+        rm -f "$L"
+        echo "Timer finished: $current"
+}
+
+cmd_status() {
+        echo "--- timer status ---"
+
+        if [ ! -f "$F" ]; then
+                echo "STATUS: no file at $F" >&2
+                echo "No sessions recorded."
+                return
+        fi
+
+        sz=$(stat -c%s "$F" 2>/dev/null || echo "0")
+        echo "STATUS: $F size = $sz bytes" >&2
+
+        if [ "$sz" -eq 0 ]; then
+                echo "STATUS: file exists but 0 bytes - empty" >&2
+                echo "No sessions recorded."
+                return
+        fi
+
+        while IFS="|" read -r event label ts; do
+                echo "status: $event | $label | $ts"
+        done < "$F"
+}
+
+main() {
+        echo "MAIN: script PID=$$" >&2
+        echo "MAIN: $0=$0" >&2
+        echo "MAIN: $1=$1" >&2
+
+        ensure_dirs
+
+        case "$1" in
+        start)  cmd_start  "$@"  ;;
+        stop)   cmd_stop         ;;
+        status) cmd_status       ;;
+        "")
+                echo "Usage: $(basename "$0") start <task>" >&2
+                echo "       $(basename "$0") stop" >&2
+                echo "       $(basename "$0") status" >&2
+                return 1
+                ;;
+        *)
+                echo "Unknown command: $1" >&2
+                echo "Expected: start, stop, status" >&2
+                return 1
+                ;;
+        esac
+}
+
+main "$@"
