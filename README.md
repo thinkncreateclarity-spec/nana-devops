@@ -1,3 +1,4 @@
+**Status:** Prototype. This repository is experimental and may not yet have CI, tests, or stable APIs.
 # nana: Nana's 3 Skills → ₹50K DevOps Jobs 🚀
 
 **60 seconds → Senior DevOps confidence**
